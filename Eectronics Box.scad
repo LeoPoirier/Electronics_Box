@@ -5,6 +5,7 @@
 
 $fn = 64;
 
+show_lid           = true;
 
 // ============================================================
 // Main enclosure parameters
@@ -14,32 +15,37 @@ box_width  = 120;
 box_depth  = 80;
 box_height = 40;
 
+//Thickness of the 4 walls Perpendiculars to the Lid
 wall_thickness  = 2.4;
+//Thickness of the wall Parallel to the Lid
 closed_end_thickness = 3.0;
 
 // ============================================================
 // Fillet parameters
 // ============================================================
-
+//Corner fillets for Box
 enable_box_fillet = true;
+//Corner fillets for Lid
 enable_lid_fillet  = true;
 
-// Shared radius used for both the box's and the lid's
-// horizontal edges (the ones running along the insertion axis X)
+
 fillet_radius = 2.0;
 
 // ============================================================
 // PCB groove parameters
 // ============================================================
 
-pcb_thickness  = 1.6;
-pcb_clearance  = 0.3;
-groove_height  = pcb_thickness + 2 * pcb_clearance;
-groove_depth   = 1.5;
+//With of the PCB+ clearance
+pcb_width = 78;
+//Height of the PCB + clearance
+groove_height  = 2.0;
+//distance from the bottom of the groove to the bottom Wall
 groove_bottom  = 16;
 groove_on_top_bottom = false;
 
-
+inner_cavity_width = box_depth - 2 * wall_thickness;
+groove_depth = (pcb_width - inner_cavity_width) / 2;
+echo("Computed groove_depth =", groove_depth);
 // ============================================================
 // Lid parameters
 // ============================================================
@@ -47,7 +53,7 @@ groove_on_top_bottom = false;
 lid_thickness     = 3.0;
 lid_overhang       = 0.0;
 lid_display_gap    = 6.0;
-show_lid           = true;
+
 
 
 // ============================================================
@@ -78,8 +84,10 @@ epsilon = 0.05;
 assert(wall_thickness > 0);
 assert(closed_end_thickness > 0);
 assert(groove_depth > 0);
-assert(groove_depth < wall_thickness);
-assert(groove_bottom >= wall_thickness);
+assert(groove_depth > 0,
+    "pcb_width must be larger than the inner cavity width (box_depth - 2*wall_thickness)");
+assert(groove_depth < wall_thickness,
+    "pcb_width is too large for the current wall_thickness/box_depth - groove would cut through the wall");assert(groove_bottom >= wall_thickness);
 assert(groove_bottom + groove_height <= box_height - wall_thickness);
 assert(box_width  > 2 * wall_thickness);
 assert(box_depth  > 2 * wall_thickness);
