@@ -44,7 +44,6 @@ pcb_width = 78;
 groove_height  = 2.0;
 //distance from the bottom of the groove to the bottom Wall
 groove_bottom  = 16;
-groove_on_top_bottom = false;
 
 inner_cavity_width = box_width - 2 * wall_thickness;
 groove_depth = (pcb_width - inner_cavity_width) / 2;
@@ -194,6 +193,11 @@ module basic_shell() {
 // PCB groove cutters (fixed: stops before the closed end wall)
 // ============================================================
 
+// ============================================================
+// PCB groove cutters (side walls only, stops before the
+// closed end wall)
+// ============================================================
+
 module pcb_groove_cutters() {
 
     groove_length = box_depth - closed_end_thickness + epsilon;
@@ -211,23 +215,6 @@ module pcb_groove_cutters() {
         groove_bottom
     ])
     cube([groove_length, groove_depth + epsilon, groove_height]);
-
-    if (groove_on_top_bottom) {
-
-        translate([
-            closed_end_thickness - epsilon,
-            wall_thickness,
-            wall_thickness - groove_depth
-        ])
-        cube([groove_length, box_width - 2 * wall_thickness, groove_depth + epsilon]);
-
-        translate([
-            closed_end_thickness - epsilon,
-            wall_thickness,
-            box_height - wall_thickness - epsilon
-        ])
-        cube([groove_length, box_width - 2 * wall_thickness, groove_depth + epsilon]);
-    }
 }
 
 
