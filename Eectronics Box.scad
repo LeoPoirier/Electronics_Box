@@ -101,11 +101,9 @@ assert(screw_boss_corner_radius < screw_boss_margin,
     "screw_boss_corner_radius must be smaller than screw_boss_margin");
 assert(screw_offset + screw_boss_margin < box_width  / 2);
 assert(screw_offset + screw_boss_margin < box_height / 2);
-assert(!enable_box_fillet || fillet_radius <= wall_thickness,
-    "fillet_radius should not exceed wall_thickness, or it will cut into the cavity/bosses");
-assert(!enable_lid_fillet || fillet_radius < lid_thickness + 2 * lid_overhang);
-assert(screw_boss_chamfer_depth >= 0 && screw_boss_chamfer_depth < screw_boss_depth,
-    "screw_boss_chamfer_depth must be between 0 and screw_boss_depth");
+
+assert(screw_boss_chamfer_depth >= 0 && screw_boss_chamfer_depth < screw_boss_margin,
+    "screw_boss_chamfer_depth must be between 0 and screw_boss_margin");
 
 // ============================================================
 // Screw center positions (Y-Z plane of the opening face)
@@ -234,52 +232,77 @@ module pcb_groove_cutters() {
 
 
 // ============================================================
-// Screw bosses: flat posts, flush with both walls,
-// rounded only on the inner corner facing the cavity
+// Screw boss cross-section, extruded by `depth` along X,
+// starting at local X = 0. Reused both for the straight part
+// of the boss and for the chamfer transition.
 // ============================================================
 
-module screw_boss(position) {
+module screw_boss_prism(position, margin, depth) {
     corner_y = (position[0] < box_width  / 2) ? 0 : box_width;
     corner_z = (position[1] < box_height / 2) ? 0 : box_height;
 
     dir_y = (corner_y == 0) ? 1 : -1;
     dir_z = (corner_z == 0) ? 1 : -1;
 
-    inner_y = position[0] + dir_y * screw_boss_margin;
-    inner_z = position[1] + dir_z * screw_boss_margin;
+    inner_y = position[0] + dir_y * margin;
+    inner_z = position[1] + dir_z * margin;
 
     ymin = min(corner_y, inner_y);
     ymax = max(corner_y, inner_y);
     zmin = min(corner_z, inner_z);
     zmax = max(corner_z, inner_z);
 
-    r = screw_boss_corner_radius;
+    r = min(screw_boss_corner_radius, margin);
 
-    // Slab A: full Y span, shortened in Z on the inner side by r
     zminA = (dir_z > 0) ? zmin : zmin + r;
     zmaxA = (dir_z > 0) ? zmax - r : zmax;
 
-    // Slab B: full Z span, shortened in Y on the inner side by r
     yminB = (dir_y > 0) ? ymin : ymin + r;
     ymaxB = (dir_y > 0) ? ymax - r : ymax;
 
-    // Fillet cylinder center, pulled back by r from the inner corner
     cyl_y = inner_y - dir_y * r;
     cyl_z = inner_z - dir_z * r;
 
-    translate([box_depth - screw_boss_depth, 0, 0])
     hull() {
         translate([0, ymin, zminA])
-            cube([screw_boss_depth, ymax - ymin, zmaxA - zminA]);
+            cube([depth, ymax - ymin, zmaxA - zminA]);
 
         translate([0, yminB, zmin])
-            cube([screw_boss_depth, ymaxB - yminB, zmax - zmin]);
+            cube([depth, ymaxB - yminB, zmax - zmin]);
 
         translate([0, cyl_y, cyl_z])
         rotate([0, 90, 0])
-        cylinder(h = screw_boss_depth, r = r);
+        cylinder(h = depth, r = r);
     }
 }
+
+
+// ============================================================
+// Screw boss: straight section flush with the opening face,
+// plus an optional tapered chamfer at the inner (unsupported) end
+// ============================================================
+
+module screw_boss(position) {
+    x_boss_start = box_depth - screw_boss_depth;
+
+    // Straight part, full size, full depth
+    translate([x_boss_start, 0, 0])
+    screw_boss_prism(position, screw_boss_margin, screw_boss_depth);
+
+    // 45-degree taper extending inward from the boss's inner end
+    if (screw_boss_chamfer_depth > 0) {
+        chamfer_margin = screw_boss_margin - screw_boss_chamfer_depth;
+
+        hull() {
+            translate([x_boss_start - screw_boss_chamfer_depth, 0, 0])
+            screw_boss_prism(position, chamfer_margin, epsilon);
+
+            translate([x_boss_start, 0, 0])
+            screw_boss_prism(position, screw_boss_margin, epsilon);
+        }
+    }
+}
+
 
 module screw_bosses() {
     for (position = screw_centers_yz) {
@@ -288,20 +311,23 @@ module screw_bosses() {
 }
 
 
-// ============================================================
-// Pilot holes in the box (fixed: now actually cuts into the boss)
+// // ============================================================
+// Pilot holes in the box, spanning the full boss length
+// (straight section plus chamfer)
 // ============================================================
 
 module base_screw_holes() {
+    total_boss_depth = screw_boss_depth + screw_boss_chamfer_depth;
+
     for (position = screw_centers_yz) {
         translate([
-            box_depth - screw_boss_depth - epsilon,
+            box_depth - total_boss_depth - epsilon,
             position[0],
             position[1]
         ])
         rotate([0, 90, 0])
         cylinder(
-            h = screw_boss_depth + 2 * epsilon,
+            h = total_boss_depth + 2 * epsilon,
             d = base_pilot_hole_diameter
         );
     }
@@ -379,8 +405,9 @@ module box_lid() {
 // Assembly
 // ============================================================
 
-box_base();
-
+if (show_box) {
+    box_base();
+}
 if (show_lid) {
     box_lid();
 }
