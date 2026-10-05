@@ -5,14 +5,17 @@
 
 $fn = 64;
 
-show_lid           = true;
+show_box = true;
+show_lid = true;
+lid_on_side = true;
 
 // ============================================================
 // Main enclosure parameters
 // ============================================================
 
-box_width  = 120;
-box_depth  = 80;
+box_depth= 120;
+//Recomended PCB WIdth + Wall Thickness
+box_width  = 80;
 box_height = 40;
 
 //Thickness of the 4 walls Perpendiculars to the Lid
@@ -43,7 +46,7 @@ groove_height  = 2.0;
 groove_bottom  = 16;
 groove_on_top_bottom = false;
 
-inner_cavity_width = box_depth - 2 * wall_thickness;
+inner_cavity_width = box_width - 2 * wall_thickness;
 groove_depth = (pcb_width - inner_cavity_width) / 2;
 echo("Computed groove_depth =", groove_depth);
 // ============================================================
@@ -76,6 +79,8 @@ lid_clearance_hole_diameter = 3.4;
 
 epsilon = 0.05;
 
+screw_boss_chamfer_depth = 3.0;
+
 
 // ============================================================
 // Validation
@@ -85,20 +90,22 @@ assert(wall_thickness > 0);
 assert(closed_end_thickness > 0);
 assert(groove_depth > 0);
 assert(groove_depth > 0,
-    "pcb_width must be larger than the inner cavity width (box_depth - 2*wall_thickness)");
+    "pcb_width must be larger than the inner cavity width (box_width - 2*wall_thickness)");
 assert(groove_depth < wall_thickness,
-    "pcb_width is too large for the current wall_thickness/box_depth - groove would cut through the wall");assert(groove_bottom >= wall_thickness);
+    "pcb_width is too large for the current wall_thickness/box_width - groove would cut through the wall");assert(groove_bottom >= wall_thickness);
 assert(groove_bottom + groove_height <= box_height - wall_thickness);
-assert(box_width  > 2 * wall_thickness);
 assert(box_depth  > 2 * wall_thickness);
+assert(box_width  > 2 * wall_thickness);
 assert(box_height > 2 * wall_thickness);
 assert(screw_boss_corner_radius < screw_boss_margin,
     "screw_boss_corner_radius must be smaller than screw_boss_margin");
-assert(screw_offset + screw_boss_margin < box_depth  / 2);
+assert(screw_offset + screw_boss_margin < box_width  / 2);
 assert(screw_offset + screw_boss_margin < box_height / 2);
 assert(!enable_box_fillet || fillet_radius <= wall_thickness,
     "fillet_radius should not exceed wall_thickness, or it will cut into the cavity/bosses");
 assert(!enable_lid_fillet || fillet_radius < lid_thickness + 2 * lid_overhang);
+assert(screw_boss_chamfer_depth >= 0 && screw_boss_chamfer_depth < screw_boss_depth,
+    "screw_boss_chamfer_depth must be between 0 and screw_boss_depth");
 
 // ============================================================
 // Screw center positions (Y-Z plane of the opening face)
@@ -106,8 +113,8 @@ assert(!enable_lid_fillet || fillet_radius < lid_thickness + 2 * lid_overhang);
 
 screw_centers_yz = [
     [screw_offset,                 screw_offset],
-    [box_depth  - screw_offset,    screw_offset],
-    [box_depth  - screw_offset,    box_height - screw_offset],
+    [box_width  - screw_offset,    screw_offset],
+    [box_width  - screw_offset,    box_height - screw_offset],
     [screw_offset,                 box_height - screw_offset]
 ];
 
@@ -134,9 +141,9 @@ module screw_bosses_final() {
 
 module box_outer_solid() {
     if (enable_box_fillet) {
-        rounded_box_outer(box_width, box_depth, box_height, fillet_radius);
+        rounded_box_outer(box_depth, box_width, box_height, fillet_radius);
     } else {
-        cube([box_width, box_depth, box_height]);
+        cube([box_depth, box_width, box_height]);
     }
 }
 
@@ -177,8 +184,8 @@ module basic_shell() {
             wall_thickness
         ])
         cube([
-            box_width - closed_end_thickness + epsilon,
-            box_depth  - 2 * wall_thickness,
+            box_depth - closed_end_thickness + epsilon,
+            box_width  - 2 * wall_thickness,
             box_height - 2 * wall_thickness
         ]);
     }
@@ -191,11 +198,11 @@ module basic_shell() {
 
 module pcb_groove_cutters() {
 
-    groove_length = box_width - closed_end_thickness + epsilon;
+    groove_length = box_depth - closed_end_thickness + epsilon;
 
     translate([
         closed_end_thickness - epsilon,
-        box_depth - wall_thickness - epsilon,
+        box_width - wall_thickness - epsilon,
         groove_bottom
     ])
     cube([groove_length, groove_depth + epsilon, groove_height]);
@@ -214,14 +221,14 @@ module pcb_groove_cutters() {
             wall_thickness,
             wall_thickness - groove_depth
         ])
-        cube([groove_length, box_depth - 2 * wall_thickness, groove_depth + epsilon]);
+        cube([groove_length, box_width - 2 * wall_thickness, groove_depth + epsilon]);
 
         translate([
             closed_end_thickness - epsilon,
             wall_thickness,
             box_height - wall_thickness - epsilon
         ])
-        cube([groove_length, box_depth - 2 * wall_thickness, groove_depth + epsilon]);
+        cube([groove_length, box_width - 2 * wall_thickness, groove_depth + epsilon]);
     }
 }
 
@@ -232,7 +239,7 @@ module pcb_groove_cutters() {
 // ============================================================
 
 module screw_boss(position) {
-    corner_y = (position[0] < box_depth  / 2) ? 0 : box_depth;
+    corner_y = (position[0] < box_width  / 2) ? 0 : box_width;
     corner_z = (position[1] < box_height / 2) ? 0 : box_height;
 
     dir_y = (corner_y == 0) ? 1 : -1;
@@ -260,7 +267,7 @@ module screw_boss(position) {
     cyl_y = inner_y - dir_y * r;
     cyl_z = inner_z - dir_z * r;
 
-    translate([box_width - screw_boss_depth, 0, 0])
+    translate([box_depth - screw_boss_depth, 0, 0])
     hull() {
         translate([0, ymin, zminA])
             cube([screw_boss_depth, ymax - ymin, zmaxA - zminA]);
@@ -288,7 +295,7 @@ module screw_bosses() {
 module base_screw_holes() {
     for (position = screw_centers_yz) {
         translate([
-            box_width - screw_boss_depth - epsilon,
+            box_depth - screw_boss_depth - epsilon,
             position[0],
             position[1]
         ])
@@ -343,23 +350,23 @@ module lid_screw_holes() {
 // ============================================================
 
 module box_lid() {
-    translate([
-        box_width + lid_display_gap,
-        -lid_overhang,
-        -lid_overhang
-    ])
+    base_offset = lid_on_side
+        ? [0, box_width + lid_display_gap, 0]
+        : [box_depth + lid_display_gap, 0, 0];
+
+    translate(base_offset + [0, -lid_overhang, -lid_overhang])
     difference() {
         if (enable_lid_fillet) {
             rounded_box_outer(
                 lid_thickness,
-                box_depth  + 2 * lid_overhang,
+                box_width  + 2 * lid_overhang,
                 box_height + 2 * lid_overhang,
                 fillet_radius
             );
         } else {
             cube([
                 lid_thickness,
-                box_depth  + 2 * lid_overhang,
+                box_width  + 2 * lid_overhang,
                 box_height + 2 * lid_overhang
             ]);
         }
