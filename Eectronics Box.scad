@@ -17,6 +17,16 @@ box_height = 40;
 wall_thickness  = 2.4;
 closed_end_thickness = 3.0;
 
+// ============================================================
+// Fillet parameters
+// ============================================================
+
+enable_box_fillet = true;
+enable_lid_fillet  = true;
+
+// Shared radius used for both the box's and the lid's
+// horizontal edges (the ones running along the insertion axis X)
+fillet_radius = 2.0;
 
 // ============================================================
 // PCB groove parameters
@@ -35,7 +45,7 @@ groove_on_top_bottom = false;
 // ============================================================
 
 lid_thickness     = 3.0;
-lid_overhang       = 1.0;
+lid_overhang       = 0.0;
 lid_display_gap    = 6.0;
 show_lid           = true;
 
@@ -78,7 +88,9 @@ assert(screw_boss_corner_radius < screw_boss_margin,
     "screw_boss_corner_radius must be smaller than screw_boss_margin");
 assert(screw_offset + screw_boss_margin < box_depth  / 2);
 assert(screw_offset + screw_boss_margin < box_height / 2);
-
+assert(!enable_box_fillet || fillet_radius <= wall_thickness,
+    "fillet_radius should not exceed wall_thickness, or it will cut into the cavity/bosses");
+assert(!enable_lid_fillet || fillet_radius < lid_thickness + 2 * lid_overhang);
 
 // ============================================================
 // Screw center positions (Y-Z plane of the opening face)
@@ -91,6 +103,57 @@ screw_centers_yz = [
     [screw_offset,                 box_height - screw_offset]
 ];
 
+// ============================================================
+// Screw bosses, clipped to the box's outer surface so their
+// outer corner follows the fillet instead of sticking past it
+// ============================================================
+
+module screw_bosses_final() {
+    if (enable_box_fillet) {
+        intersection() {
+            screw_bosses();
+            box_outer_solid();
+        }
+    } else {
+        screw_bosses();
+    }
+}
+// ============================================================
+// Outer solid of the box (before the cavity is cut),
+// used both for the shell and to clip the screw bosses
+// so they never poke past a rounded exterior corner.
+// ============================================================
+
+module box_outer_solid() {
+    if (enable_box_fillet) {
+        rounded_box_outer(box_width, box_depth, box_height, fillet_radius);
+    } else {
+        cube([box_width, box_depth, box_height]);
+    }
+}
+
+// ============================================================
+// Rounded rectangular prism, extruded along X.
+// Rounds only the 4 long edges parallel to X (the "horizontal"
+// edges, since X is the insertion/opening axis). The flat end
+// caps and the vertical corner edges stay sharp.
+// ============================================================
+
+module rounded_box_outer(length_x, width_y, height_z, r) {
+    if (r <= 0) {
+        cube([length_x, width_y, height_z]);
+    } else {
+        hull() {
+            for (yy = [r, width_y - r]) {
+                for (zz = [r, height_z - r]) {
+                    translate([0, yy, zz])
+                    rotate([0, 90, 0])
+                    cylinder(h = length_x, r = r);
+                }
+            }
+        }
+    }
+}
 
 // ============================================================
 // Basic shell
@@ -98,7 +161,7 @@ screw_centers_yz = [
 
 module basic_shell() {
     difference() {
-        cube([box_width, box_depth, box_height]);
+        box_outer_solid();
 
         translate([
             closed_end_thickness,
@@ -238,7 +301,7 @@ module box_base() {
     difference() {
         union() {
             basic_shell();
-            screw_bosses();
+            screw_bosses_final();
         }
 
         pcb_groove_cutters();
@@ -278,16 +341,24 @@ module box_lid() {
         -lid_overhang
     ])
     difference() {
-        cube([
-            lid_thickness,
-            box_depth  + 2 * lid_overhang,
-            box_height + 2 * lid_overhang
-        ]);
+        if (enable_lid_fillet) {
+            rounded_box_outer(
+                lid_thickness,
+                box_depth  + 2 * lid_overhang,
+                box_height + 2 * lid_overhang,
+                fillet_radius
+            );
+        } else {
+            cube([
+                lid_thickness,
+                box_depth  + 2 * lid_overhang,
+                box_height + 2 * lid_overhang
+            ]);
+        }
 
         lid_screw_holes();
     }
 }
-
 
 // ============================================================
 // Assembly
