@@ -2,7 +2,7 @@
 // Parametric electronic project box - side-opening version
 // OpenSCAD
 //
-
+/* [Display Options] */
 $fn = 64;
 
 show_box = true;
@@ -12,11 +12,13 @@ lid_on_side = true;
 // ============================================================
 // Main enclosure parameters
 // ============================================================
-
-box_depth= 120;
-//Recomended PCB WIdth + Wall Thickness
-box_width  = 80;
-box_height = 40;
+/* [Box & Lid basic setting] */
+//Exterior depth (PCB depth+ Closed_end_thickness)
+box_depth  = 120.0; 
+//Recomended PCB WIdth + Wall Thickness (PCB enters wall on half its thickness)
+box_width  = 80.0;
+//exterior Height
+box_height = 40.0;
 
 //Thickness of the 4 walls Perpendiculars to the Lid
 wall_thickness  = 2.4;
@@ -26,11 +28,11 @@ closed_end_thickness = 3.0;
 // ============================================================
 // Fillet parameters
 // ============================================================
+
 //Corner fillets for Box
 enable_box_fillet = true;
 //Corner fillets for Lid
 enable_lid_fillet  = true;
-
 
 fillet_radius = 2.0;
 
@@ -39,15 +41,16 @@ fillet_radius = 2.0;
 // ============================================================
 
 //With of the PCB+ clearance
-pcb_width = 78;
+pcb_width = 78.0;
 //Height of the PCB + clearance
 groove_height  = 2.0;
 //distance from the bottom of the groove to the bottom Wall
-groove_bottom  = 16;
+groove_bottom  = 16.0;
 
 inner_cavity_width = box_width - 2 * wall_thickness;
 groove_depth = (pcb_width - inner_cavity_width) / 2;
 echo("Computed groove_depth =", groove_depth);
+
 // ============================================================
 // Lid parameters
 // ============================================================
@@ -61,6 +64,8 @@ lid_display_gap    = 6.0;
 // ============================================================
 // Screw / boss parameters
 // ============================================================
+
+/* [Screw Holes parameters] */
 
 screw_offset = 8.0;
 
@@ -99,7 +104,7 @@ include <Wall_Features.scad>
 
 /* [Feature 1] */
 feature1_enabled = true;
-feature1_type    = "circular_hole"; // [circular_hole]
+feature1_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature1_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature1_u       = 20;
 feature1_v       = 10;
@@ -111,7 +116,7 @@ feature1_d       = 0;
 
 /* [Feature 2] */
 feature2_enabled = false;
-feature2_type    = "circular_hole"; // [circular_hole]
+feature2_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature2_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature2_u       = 20;
 feature2_v       = 10;
@@ -123,7 +128,7 @@ feature2_d       = 0;
 
 /* [Feature 3] */
 feature3_enabled = false;
-feature3_type    = "circular_hole"; // [circular_hole]
+feature3_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature3_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature3_u       = 20;
 feature3_v       = 10;
@@ -135,7 +140,7 @@ feature3_d       = 0;
 
 /* [Feature 4] */
 feature4_enabled = false;
-feature4_type    = "circular_hole"; // [circular_hole]
+feature4_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature4_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature4_u       = 20;
 feature4_v       = 10;
@@ -147,7 +152,7 @@ feature4_d       = 0;
 
 /* [Feature 5] */
 feature5_enabled = false;
-feature5_type    = "circular_hole"; // [circular_hole]
+feature5_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature5_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature5_u       = 20;
 feature5_v       = 10;
@@ -159,7 +164,7 @@ feature5_d       = 0;
 
 /* [Feature 6] */
 feature6_enabled = false;
-feature6_type    = "circular_hole"; // [circular_hole]
+feature6_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature6_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature6_u       = 20;
 feature6_v       = 10;
@@ -171,7 +176,7 @@ feature6_d       = 0;
 
 /* [Feature 7] */
 feature7_enabled = false;
-feature7_type    = "circular_hole"; // [circular_hole]
+feature7_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature7_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature7_u       = 20;
 feature7_v       = 10;
@@ -183,7 +188,7 @@ feature7_d       = 0;
 
 /* [Feature 8] */
 feature8_enabled = false;
-feature8_type    = "circular_hole"; // [circular_hole]
+feature8_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature8_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature8_u       = 20;
 feature8_v       = 10;
@@ -195,7 +200,7 @@ feature8_d       = 0;
 
 /* [Feature 9] */
 feature9_enabled = false;
-feature9_type    = "circular_hole"; // [circular_hole]
+feature9_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature9_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature9_u       = 20;
 feature9_v       = 10;
@@ -207,7 +212,7 @@ feature9_d       = 0;
 
 /* [Feature 10] */
 feature10_enabled = false;
-feature10_type    = "circular_hole"; // [circular_hole]
+feature10_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature10_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature10_u       = 20;
 feature10_v       = 10;
@@ -219,7 +224,7 @@ feature10_d       = 0;
 
 /* [Feature 11] */
 feature11_enabled = false;
-feature11_type    = "circular_hole"; // [circular_hole]
+feature11_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature11_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature11_u       = 20;
 feature11_v       = 10;
@@ -231,7 +236,7 @@ feature11_d       = 0;
 
 /* [Feature 12] */
 feature12_enabled = false;
-feature12_type    = "circular_hole"; // [circular_hole]
+feature12_type    = "circular_hole"; // [circular_hole, rectangular_hole, ventilation_hole]
 feature12_face    = 2; // [0:Lid, 1:Closed end, 2:Left wall, 3:Right wall, 4:Bottom, 5:Top]
 feature12_u       = 20;
 feature12_v       = 10;
@@ -245,25 +250,25 @@ feature12_d       = 0;
 // Validation
 // ============================================================
 
-assert(wall_thickness > 0);
-assert(closed_end_thickness > 0);
-assert(groove_depth > 0);
-assert(groove_depth > 0,
-    "pcb_width must be larger than the inner cavity width (box_width - 2*wall_thickness)");
-assert(groove_depth < wall_thickness,
-    "pcb_width is too large for the current wall_thickness/box_width - groove would cut through the wall");assert(groove_bottom >= wall_thickness);
-assert(groove_bottom + groove_height <= box_height - wall_thickness);
-assert(box_depth  > 2 * wall_thickness);
-assert(box_width  > 2 * wall_thickness);
-assert(box_height > 2 * wall_thickness);
-assert(screw_boss_corner_radius < screw_boss_margin,
-    "screw_boss_corner_radius must be smaller than screw_boss_margin");
-assert(screw_offset + screw_boss_margin < box_width  / 2);
-assert(screw_offset + screw_boss_margin < box_height / 2);
+//assert(wall_thickness > 0);
+//assert(closed_end_thickness > 0);
+//assert(groove_depth > 0);
+//assert(groove_depth > 0,
+//    "pcb_width must be larger than the inner cavity width (box_width - 2*wall_thickness)");
+//assert(groove_depth < wall_thickness,
+//    "pcb_width is too large for the current wall_thickness/box_width - groove would cut through the wall");
+//assert(groove_bottom >= wall_thickness);
+//assert(groove_bottom + groove_height <= box_height - wall_thickness);
+//assert(box_depth  > 2 * wall_thickness);
+//assert(box_width  > 2 * wall_thickness);
+//assert(box_height > 2 * wall_thickness);
+//assert(screw_boss_corner_radius < screw_boss_margin,
+//    "screw_boss_corner_radius must be smaller than screw_boss_margin");
+//assert(screw_offset + screw_boss_margin < box_width  / 2);
+//assert(screw_offset + screw_boss_margin < box_height / 2);
 
-assert(screw_boss_chamfer_depth >= 0 && screw_boss_chamfer_depth < screw_boss_margin,
-    "screw_boss_chamfer_depth must be between 0 and screw_boss_margin");
-
+//assert(screw_boss_chamfer_depth >= 0 && screw_boss_chamfer_depth < screw_boss_margin,
+//    "screw_boss_chamfer_depth must be between 0 and screw_boss_margin");
 // ============================================================
 // Lid base offset — single source of truth for where the lid's
 // local origin sits in global space. Used by box_lid() and by

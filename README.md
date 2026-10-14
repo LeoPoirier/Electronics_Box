@@ -144,7 +144,26 @@ exactly these fields: `enabled`, `type`, `face`, `u`, `v`, `rot`, `a`, `b`,
 | Type string | Parameters (a, b, c, d) | Description |
 |---|---|---|
 | `circular_hole` | `a` = diameter | A simple round hole, e.g. for cables, LEDs, buttons. |
-| _(more to come — rect_hole, usb_c, etc.)_ | | |
+| `rectangular_hole` | `a` = width, `b` = height, `c` = corner fillet radius | A rectangular cutout with optional rounded corners. Set `c = 0` for sharp corners. `c` must stay smaller than half of `a` and half of `b`, or the shape becomes invalid. |
+| `ventilation_hole` | `a` = style (`0`/`1`/`2`), `b` = quantity 1, `c` = quantity 2, `d` = hole dimension | A grid or row of ventilation holes. See breakdown below — the meaning of `b`, `c`, and `d` depends on the chosen style. |
+| _(more to come — usb_c, etc.)_ | | |
+
+#### `ventilation_hole` styles
+
+- **Style `0` — square matrix**: a `b` x `c` grid of round holes, each with
+  diameter `d`. Center-to-center spacing is `1.5 * d` in both directions,
+  so holes never overlap. `c` is unused by styles `1`.
+- **Style `1` — oblong row**: a single row of `b` oblong (pill-shaped)
+  holes, each `d` wide and `5 * d` long (fixed 5:1 aspect ratio), long axis
+  horizontal, packed side by side with `1.5 * (5*d)` center spacing.
+  `c` is ignored for this style.
+- **Style `2` — staggered oblong grid**: a `b` x `c` grid of the same
+  oblong shape as style `1`, arranged in a brick/running-bond pattern —
+  alternating rows are offset horizontally by half the row spacing, matching
+  the look of a standard perforated-metal ventilation panel.
+
+In all three styles, the hole pattern is centered on the feature's `(u, v)`
+placement point, and `rot` rotates the entire pattern in-plane.
 
 ---
 
